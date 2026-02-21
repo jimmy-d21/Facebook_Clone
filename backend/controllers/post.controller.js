@@ -62,6 +62,7 @@ export const deletePost = async (req, res) => {
   }
 };
 
+// Controller to get all post
 export const getAllPosts = async (req, res) => {
   try {
     const getAllPostSql = `
@@ -69,6 +70,7 @@ export const getAllPosts = async (req, res) => {
         u.id AS user_id, 
         CONCAT(u.firstname, ' ', u.lastname) AS fullname, 
         u.email, 
+        u.profile_picture,
         p.id AS post_id,
         p.text,
         p.image,
@@ -94,6 +96,69 @@ export const getAllPosts = async (req, res) => {
     }));
 
     res.status(200).json({ posts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Controller to likeUnLike post
+export const likeUnLikePost = async (req, res) => {
+  try {
+    const { id } = req.params; // post id
+    const user = req.user;
+
+    // Check if post exists and belongs to user
+    const checkPostSql = `
+      SELECT
+        u.id AS user_id, 
+        CONCAT(u.firstname, ' ', u.lastname) AS fullname,
+        u.email,
+        u.profile_picture,
+        p.id AS post_id,
+        p.text,
+        p.image,
+        p.created_at
+      FROM users AS u
+      INNER JOIN posts AS p ON u.id = p.user_id
+      WHERE p.id = ? AND p.user_id = ?
+    `;
+    const [posts] = await connectDB.query(checkPostSql, [id, user.id]);
+
+    if (posts.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const post = {
+      post: {
+        id: posts[0].post_id,
+        text: posts[0].text,
+        image: posts[0].image,
+        created_at: posts[0].created_at,
+      },
+      user: {
+        id: posts[0].user_id,
+        fullname: posts[0].fullname,
+        email: posts[0].email,
+      },
+    };
+
+    // Check if already liked
+    const isLikedSql = "SELECT * FROM likes WHERE post_id = ? AND user_id = ?";
+    const [results] = await connectDB.query(isLikedSql, [id, user.id]);
+
+    if (results.length === 0) {
+      // Like post
+      const likePostSql = "INSERT INTO likes (post_id, user_id) VALUES (?, ?)";
+      await connectDB.query(likePostSql, [id, user.id]);
+      res.status(201).json({ message: "Liked post", post });
+    } else {
+      // Unlike post
+      const unlikePostSql =
+        "DELETE FROM likes WHERE post_id = ? AND user_id = ?";
+      await connectDB.query(unlikePostSql, [id, user.id]);
+      res.status(200).json({ message: "Unliked post", post });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
