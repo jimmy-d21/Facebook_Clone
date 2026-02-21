@@ -1,18 +1,15 @@
 import express from "express";
 import ENV from "./utils/ENV.js";
-import connectDB from "./config/db.js";
+import authRoutes from "./routes/auth.route.js";
 
 const app = express();
+app.use(express.json({ limit: "5mb" }));
 
-app.get("/", async (req, res) => {
-  try {
-    const [rows] = await connectDB.query("SELECT * FROM users");
-    res.json(rows);
-  } catch (err) {
-    console.error("Query error:", err.message);
-    res.status(500).send("Database query failed: " + err.message);
-  }
+app.get("/", (req, res) => {
+  res.send(`Server is ready for Facebook Clone`);
 });
+
+app.use("/api/auth", authRoutes);
 
 const PORT = ENV.PORT || 5000;
 
