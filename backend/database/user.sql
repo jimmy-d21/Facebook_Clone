@@ -4,7 +4,9 @@ CREATE TABLE users (
     lastname VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    profile_picture VARCHAR(255),
-    cover_picture VARCHAR(255),
+    profile_picture VARCHAR(255) DEFAULT "",
+    cover_picture VARCHAR(255) DEFAULT "",
+    bio VARCHAR(255) DEFAULT "",
+    link VARCHAR(255) DEFAULT "", 
     created_at TIMESTAMP DEFAULT CURRENT TIMESTAMP
 );
