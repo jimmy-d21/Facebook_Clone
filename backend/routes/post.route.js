@@ -1,9 +1,10 @@
 import express from "express";
-import { createPost } from "../controllers/post.controller.js";
+import { createPost, deletePost } from "../controllers/post.controller.js";
 import protectRoute from "../middlewares/protectRoute.js";
 
 const router = express.Router();
 
-router.post("/create-post", protectRoute, createPost);
+router.post("/", protectRoute, createPost);
+router.delete("/:id", protectRoute, deletePost);
 
 export default router;
