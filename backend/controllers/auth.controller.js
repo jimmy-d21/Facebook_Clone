@@ -52,3 +52,36 @@ export const register = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate require fields
+    if (!email || !password) {
+      return res.status(400).json({ error: "Please provide all the fields" });
+    }
+
+    // Check if email exist
+    const checkEmailSql =
+      "SELECT id, email, password FROM users WHERE email = ?";
+    const [users] = await connectDB.query(checkEmailSql, [email]);
+    if (users.length === 0)
+      return res.status(400).json({ error: "Invalid credentials" });
+
+    // Get the specific user
+    const user = users[0];
+
+    // Check if the password is correct
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect)
+      return res.status(400).json({ error: "Invalid credentials" });
+
+    generateTokenAndSetCookie(user.id, res);
+
+    res.status(200).json({ message: "Login successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
