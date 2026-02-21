@@ -4,9 +4,18 @@ CREATE TABLE users (
     lastname VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    profile_picture VARCHAR(255) DEFAULT "",
-    cover_picture VARCHAR(255) DEFAULT "",
-    bio VARCHAR(255) DEFAULT "",
-    link VARCHAR(255) DEFAULT "", 
+    profile_picture VARCHAR(255) DEFAULT NULL,
+    cover_picture VARCHAR(255) DEFAULT NULL,
+    bio VARCHAR(255) DEFAULT NULL,
+    link VARCHAR(255) DEFAULT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT TIMESTAMP
+);
+
+CREATE TABLE posts(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    text VARCHAR(255) DEFAULT NULL,
+    image VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
