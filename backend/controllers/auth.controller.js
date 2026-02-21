@@ -1,5 +1,6 @@
 import connectDB from "../config/db.js";
 import bcrypt from "bcryptjs";
+import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
 
 export const register = async (req, res) => {
   try {
@@ -40,10 +41,11 @@ export const register = async (req, res) => {
     const values = [email, firstname, lastname, hashedPassowrd];
     const [results] = await connectDB.query(insertUserSql, values);
 
-    // Return success with new user
+    generateTokenAndSetCookie(results.insertId, res);
+
+    // Return success
     res.status(201).json({
       message: "Create account successfully",
-      user: results.insertId,
     });
   } catch (error) {
     console.error(error);
