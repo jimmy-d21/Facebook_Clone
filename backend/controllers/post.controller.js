@@ -77,6 +77,7 @@ export const getAllPosts = async (req, res) => {
         p.created_at
       FROM users AS u 
       INNER JOIN posts AS p ON u.id = p.user_id
+      ORDER BY p.created_at ASC
     `;
 
     const [results] = await connectDB.query(getAllPostSql);
