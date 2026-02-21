@@ -11,6 +11,11 @@ const ENV = {
   },
   jwt: process.env.JWT_SECRET,
   node: process.env.NODE_ENV,
+  cloudinary: {
+    cloud_name: process.env.CLOUD_NAME,
+    cloud_api_key: process.env.CLOUD_API_KEY,
+    cloud_secret_key: process.env.CLOUD_SECRET_KEY,
+  },
 };
 
 export default ENV;

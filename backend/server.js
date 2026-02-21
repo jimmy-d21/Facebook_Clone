@@ -1,7 +1,10 @@
 import express from "express";
-import ENV from "./utils/ENV.js";
 import cookieParser from "cookie-parser";
+
+import ENV from "./utils/ENV.js";
+
 import authRoutes from "./routes/auth.route.js";
+import postRoutes from "./routes/post.route.js";
 
 const app = express();
 app.use(express.json({ limit: "5mb" }));
@@ -12,6 +15,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes);
 
 const PORT = ENV.PORT || 5000;
 
