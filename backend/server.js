@@ -5,6 +5,7 @@ import ENV from "./utils/ENV.js";
 
 import authRoutes from "./routes/auth.route.js";
 import postRoutes from "./routes/post.route.js";
+import notifications from "./routes/notification.route.js";
 
 const app = express();
 app.use(express.json({ limit: "5mb" }));
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/notifications", notifications);
 
 const PORT = ENV.PORT || 5000;
 
