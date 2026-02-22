@@ -74,25 +74,33 @@ export const getAllPosts = async (req, res) => {
         p.id AS post_id,
         p.text,
         p.image,
-        p.created_at
+        p.created_at,
+        COUNT(DISTINCT l.id) AS likes,
+        COUNT(DISTINCT c.id) AS comments
       FROM users AS u 
       INNER JOIN posts AS p ON u.id = p.user_id
+      LEFT JOIN likes AS l ON p.id = l.post_id
+      LEFT JOIN comments AS c ON p.id = c.post_id
+      GROUP BY p.id, u.id
       ORDER BY p.created_at ASC
     `;
 
     const [results] = await connectDB.query(getAllPostSql);
 
-    const posts = results.map((post) => ({
+    const posts = results.map((row) => ({
       post: {
-        id: post.post_id,
-        text: post.text,
-        image: post.image,
-        created_at: post.created_at,
+        id: row.post_id,
+        text: row.text,
+        image: row.image,
+        created_at: row.created_at,
       },
+      comments: row.comments,
+      likes: row.likes,
       user: {
-        id: post.user_id,
-        fullname: post.fullname,
-        email: post.email,
+        id: row.user_id,
+        fullname: row.fullname,
+        email: row.email,
+        profile_picture: row.profile_picture,
       },
     }));
 
@@ -103,13 +111,12 @@ export const getAllPosts = async (req, res) => {
   }
 };
 
-// Controller to likeUnLike post
 export const likeUnLikePost = async (req, res) => {
   try {
     const { id } = req.params; // post id
     const user = req.user;
 
-    // Check if post exists and belongs to user
+    // Check if post exists
     const checkPostSql = `
       SELECT
         u.id AS user_id, 
@@ -122,27 +129,13 @@ export const likeUnLikePost = async (req, res) => {
         p.created_at
       FROM users AS u
       INNER JOIN posts AS p ON u.id = p.user_id
-      WHERE p.id = ? AND p.user_id = ?
+      WHERE p.id = ?
     `;
-    const [posts] = await connectDB.query(checkPostSql, [id, user.id]);
+    const [posts] = await connectDB.query(checkPostSql, [id]);
 
     if (posts.length === 0) {
       return res.status(404).json({ error: "Post not found" });
     }
-
-    const post = {
-      post: {
-        id: posts[0].post_id,
-        text: posts[0].text,
-        image: posts[0].image,
-        created_at: posts[0].created_at,
-      },
-      user: {
-        id: posts[0].user_id,
-        fullname: posts[0].fullname,
-        email: posts[0].email,
-      },
-    };
 
     // Check if already liked
     const isLikedSql = "SELECT * FROM likes WHERE post_id = ? AND user_id = ?";
@@ -152,14 +145,48 @@ export const likeUnLikePost = async (req, res) => {
       // Like post
       const likePostSql = "INSERT INTO likes (post_id, user_id) VALUES (?, ?)";
       await connectDB.query(likePostSql, [id, user.id]);
-      res.status(201).json({ message: "Liked post", post });
     } else {
       // Unlike post
       const unlikePostSql =
         "DELETE FROM likes WHERE post_id = ? AND user_id = ?";
       await connectDB.query(unlikePostSql, [id, user.id]);
-      res.status(200).json({ message: "Unliked post", post });
     }
+
+    // Re-query updated counts
+    const [updated] = await connectDB.query(
+      `SELECT 
+         COUNT(DISTINCT l.id) AS likes,
+         COUNT(DISTINCT c.id) AS comments
+       FROM posts p
+       LEFT JOIN likes l ON p.id = l.post_id
+       LEFT JOIN comments c ON p.id = c.post_id
+       WHERE p.id = ?`,
+      [id],
+    );
+
+    // Build response in your desired format
+    const post = posts[0];
+    const responseData = {
+      post: {
+        id: post.post_id,
+        text: post.text,
+        image: post.image,
+        created_at: post.created_at,
+      },
+      comments: updated[0].comments,
+      likes: updated[0].likes,
+      user: {
+        id: post.user_id,
+        fullname: post.fullname,
+        email: post.email,
+        profile_picture: post.profile_picture,
+      },
+    };
+
+    res.status(200).json({
+      message: results.length === 0 ? "Liked post" : "Unliked post",
+      ...responseData,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
