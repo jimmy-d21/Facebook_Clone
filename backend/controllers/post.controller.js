@@ -144,6 +144,13 @@ export const likeUnLikePost = async (req, res) => {
     if (results.length === 0) {
       // Like post
       const likePostSql = "INSERT INTO likes (post_id, user_id) VALUES (?, ?)";
+      const sendNotifSql = `INSERT INTO notifications 
+                            (sender_id, owner_id, notif_type) 
+                            VALUES (?, ?, ?)`;
+      // Insert to notifications table
+      await connectDB.query(sendNotifSql, [user.id, posts[0].user_id, "like"]);
+
+      // Insert to likes table
       await connectDB.query(likePostSql, [id, user.id]);
     } else {
       // Unlike post
