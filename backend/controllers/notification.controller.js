@@ -14,7 +14,7 @@ export const getAllNotifications = async (req, res) => {
         n.created_at
       FROM notifications AS n
       INNER JOIN users AS u ON n.sender_id = u.id
-      WHERE n.owner_id = ?
+      WHERE n.owner_id = ? AND n.is_read = FALSE
       ORDER BY n.created_at DESC
     `;
     const [results] = await connectDB.query(getNotifSql, [user.id]);
@@ -33,6 +33,19 @@ export const getAllNotifications = async (req, res) => {
     }));
 
     res.status(200).json(notifications);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const readAllNotif = async (req, res) => {
+  try {
+    const user = req.user;
+    const updateNotifSql = `UPDATE notifications
+                            SET is_read = TRUE
+                            WHERE owner_id = ?`;
+    await connectDB.query(updateNotifSql, [user.id]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
