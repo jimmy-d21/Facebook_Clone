@@ -220,8 +220,17 @@ export const commentPost = async (req, res) => {
       return res.status(400).json({ error: "Post not found" });
     }
 
+    // Insert to comment table
     const insertCommentSql = `INSERT INTO comments (comment, post_id, user_id) VALUES (?, ?, ?)`;
     await connectDB.query(insertCommentSql, [comment, id, user.id]);
+
+    // Insert to notifications table
+    const sendNotifSql = `INSERT INTO notifications 
+                            (sender_id, owner_id, notif_type) 
+                            VALUES (?, ?, ?)`;
+    // Insert to notifications table
+    await connectDB.query(sendNotifSql, [user.id, posts[0].user_id, "comment"]);
+
     res.status(201).json({ error: "Comment added successfully" });
   } catch (error) {
     console.error(error);
