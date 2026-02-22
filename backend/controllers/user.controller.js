@@ -1,5 +1,8 @@
 import connectDB from "../config/db.js";
 
+/**
+ * Follow or Unfollow a user
+ */
 export const followUnFollow = async (req, res) => {
   try {
     const { id } = req.params;
@@ -12,6 +15,11 @@ export const followUnFollow = async (req, res) => {
     const receiverUser = users[0];
     if (!receiverUser) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    // Prevent self-follow
+    if (user.id === receiverUser.id) {
+      return res.status(400).json({ error: "You cannot follow yourself" });
     }
 
     // Check if already following
@@ -42,6 +50,40 @@ export const followUnFollow = async (req, res) => {
 
       return res.status(200).json({ message: "Unfollowed successfully" });
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * Get user profile with follower/following counts
+ */
+export const getUserProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [users] = await connectDB.query(
+      `SELECT 
+        u.*,
+        (SELECT COUNT(*) FROM followings f WHERE f.followed_id = u.id) AS followers,
+        (SELECT COUNT(*) FROM followings fo WHERE fo.follower_id = u.id) AS followings
+      FROM users u
+      WHERE u.id = ?`,
+      [id],
+    );
+
+    const user = users[0];
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Remove sensitive fields
+    const { password, ...safeUser } = user;
+
+    res.status(200).json({
+      user: safeUser,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
