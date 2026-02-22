@@ -1,4 +1,4 @@
-CREATE TABLE following (
+CREATE TABLE followings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     follower_id INT NOT NULL,   -- the user who follows
     followed_id INT NOT NULL,   -- the user being followed
