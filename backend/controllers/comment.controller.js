@@ -37,3 +37,46 @@ export const commentPost = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// Controller to fetch all comments for a given post
+export const getCommentPost = async (req, res) => {
+  try {
+    const { id } = req.params; // post id
+
+    const getCommentSql = `
+      SELECT
+        c.id AS comment_id,
+        c.comment,
+        c.created_at,
+        u.id AS user_id,
+        u.profile_picture,
+        CONCAT(u.firstname, ' ', u.lastname) AS fullname,
+        u.email
+      FROM comments AS c
+      LEFT JOIN users AS u ON u.id = c.user_id
+      WHERE c.post_id = ?
+      ORDER BY c.created_at DESC
+    `;
+
+    const [results] = await connectDB.query(getCommentSql, [id]);
+
+    const comments = results.map((row) => ({
+      comment: {
+        id: row.comment_id,
+        text: row.comment,
+        created_at: row.created_at,
+      },
+      user: {
+        id: row.user_id,
+        fullname: row.fullname,
+        email: row.email,
+        profile_picture: row.profile_picture,
+      },
+    }));
+
+    res.status(200).json({ comments });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
