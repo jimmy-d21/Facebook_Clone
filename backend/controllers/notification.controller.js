@@ -51,3 +51,14 @@ export const readAllNotif = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const deleteNotif = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await connectDB.query(`DELETE FROM notifications WHERE id = ?`, [id]);
+    res.status(200).json({ message: "Delete notification successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
