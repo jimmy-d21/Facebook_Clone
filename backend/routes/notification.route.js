@@ -1,6 +1,7 @@
 import express from "express";
 import protectRoute from "../middlewares/protectRoute.js";
 import {
+  deleteAllNotif,
   deleteNotif,
   getAllNotifications,
   readAllNotif,
@@ -11,5 +12,6 @@ const router = express.Router();
 router.get("/", protectRoute, getAllNotifications);
 router.patch("/", protectRoute, readAllNotif);
 router.delete("/:id", protectRoute, deleteNotif);
+router.delete("/", protectRoute, deleteAllNotif);
 
 export default router;

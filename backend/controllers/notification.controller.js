@@ -62,3 +62,16 @@ export const deleteNotif = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const deleteAllNotif = async (req, res) => {
+  try {
+    const user = req.user;
+    await connectDB.query(`DELETE FROM notifications WHERE owner_id = ?`, [
+      user.id,
+    ]);
+    res.status(200).json({ message: "Delete all notification successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
