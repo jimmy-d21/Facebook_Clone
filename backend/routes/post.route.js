@@ -4,6 +4,7 @@ import {
   deletePost,
   getAllFollowingPosts,
   getAllPosts,
+  getAllUserPosts,
   likeUnLikePost,
 } from "../controllers/post.controller.js";
 import protectRoute from "../middlewares/protectRoute.js";
@@ -15,5 +16,6 @@ router.delete("/:id", protectRoute, deletePost);
 router.get("/all-posts", protectRoute, getAllPosts);
 router.patch("/:id", protectRoute, likeUnLikePost);
 router.get("/following-posts", protectRoute, getAllFollowingPosts);
+router.get("/:id", protectRoute, getAllUserPosts);
 
 export default router;

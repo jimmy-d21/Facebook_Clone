@@ -257,3 +257,48 @@ export const getAllFollowingPosts = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const getAllUserPosts = async (req, res) => {
+  try {
+    const { id: userId } = req.params;
+    const [userPosts] = await connectDB.query(
+      `
+      SELECT 
+      p.*,
+      u.id AS user_id,
+      CONCAT(u.firstname, ' ', u.lastname) AS fullname,
+      u.email,
+      u.profile_picture,
+      (SELECT COUNT(*) FROM likes AS l WHERE l.post_id = p.id) AS likes,
+      (SELECT COUNT(*) FROM comments AS c WHERE c.post_id = p.id) AS comments
+      FROM posts AS p
+      INNER JOIN users AS u ON u.id = p.user_id
+      WHERE p.user_id = ?
+      ORDER BY p.created_at DESC`,
+      [userId],
+    );
+
+    // Step 3: Format response
+    const posts = userPosts.map((row) => ({
+      post: {
+        id: row.id,
+        text: row.text,
+        image: row.image,
+        created_at: row.created_at,
+        comments: row.comments,
+        likes: row.likes,
+      },
+      user: {
+        id: row.user_id,
+        fullname: row.fullname,
+        email: row.email,
+        profile_picture: row.profile_picture,
+      },
+    }));
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
