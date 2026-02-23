@@ -3,6 +3,7 @@ import {
   createPost,
   deletePost,
   getAllFollowingPosts,
+  getAllLikedPosts,
   getAllPosts,
   getAllUserPosts,
   likeUnLikePost,
@@ -17,5 +18,6 @@ router.get("/all-posts", protectRoute, getAllPosts);
 router.patch("/:id", protectRoute, likeUnLikePost);
 router.get("/following-posts", protectRoute, getAllFollowingPosts);
 router.get("/:id", protectRoute, getAllUserPosts);
+router.get("/liked/:id", protectRoute, getAllLikedPosts);
 
 export default router;

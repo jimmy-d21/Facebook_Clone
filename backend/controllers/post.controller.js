@@ -302,3 +302,65 @@ export const getAllUserPosts = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const getAllLikedPosts = async (req, res) => {
+  try {
+    const { id: userId } = req.params;
+
+    // Step 1: Get all post IDs the user has liked
+    const [postIds] = await connectDB.query(
+      `SELECT post_id
+       FROM likes
+       WHERE user_id = ?`,
+      [userId],
+    );
+
+    const extractIds = postIds.map((p) => p.post_id);
+
+    // Step 2: Handle case where user has no liked posts
+    if (extractIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Step 3: Get posts with counts and user info
+    const [posts] = await connectDB.query(
+      `
+      SELECT
+        p.*,
+        u.id AS user_id,
+        CONCAT(u.firstname, ' ', u.lastname) AS fullname,
+        u.email,
+        u.profile_picture,
+        (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+        (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments
+      FROM posts AS p
+      INNER JOIN users AS u ON u.id = p.user_id
+      WHERE p.id IN (?)
+      ORDER BY p.created_at DESC`,
+      [extractIds],
+    );
+
+    // Step 4: Format response
+    const likedPosts = posts.map((row) => ({
+      post: {
+        id: row.id,
+        text: row.text,
+        image: row.image,
+        created_at: row.created_at,
+        comments: row.comments,
+        likes: row.likes,
+      },
+      user: {
+        id: row.user_id,
+        fullname: row.fullname,
+        email: row.email,
+        profile_picture: row.profile_picture,
+      },
+    }));
+
+    res.status(200).json(likedPosts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
