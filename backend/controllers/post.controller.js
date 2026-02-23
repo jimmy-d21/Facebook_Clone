@@ -62,7 +62,7 @@ export const deletePost = async (req, res) => {
   }
 };
 
-// Controller to get all post
+// Controller to get all posts
 export const getAllPosts = async (req, res) => {
   try {
     const getAllPostSql = `
@@ -75,14 +75,11 @@ export const getAllPosts = async (req, res) => {
         p.text,
         p.image,
         p.created_at,
-        COUNT(DISTINCT l.id) AS likes,
-        COUNT(DISTINCT c.id) AS comments
+        (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+        (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments
       FROM users AS u 
       INNER JOIN posts AS p ON u.id = p.user_id
-      LEFT JOIN likes AS l ON p.id = l.post_id
-      LEFT JOIN comments AS c ON p.id = c.post_id
-      GROUP BY p.id, u.id
-      ORDER BY p.created_at ASC
+      ORDER BY p.created_at DESC
     `;
 
     const [results] = await connectDB.query(getAllPostSql);
@@ -93,9 +90,9 @@ export const getAllPosts = async (req, res) => {
         text: row.text,
         image: row.image,
         created_at: row.created_at,
+        comments: row.comments,
+        likes: row.likes,
       },
-      comments: row.comments,
-      likes: row.likes,
       user: {
         id: row.user_id,
         fullname: row.fullname,
@@ -104,7 +101,7 @@ export const getAllPosts = async (req, res) => {
       },
     }));
 
-    res.status(200).json({ posts });
+    res.status(200).json(posts);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -194,6 +191,67 @@ export const likeUnLikePost = async (req, res) => {
       message: results.length === 0 ? "Liked post" : "Unliked post",
       ...responseData,
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const getAllFollowingPosts = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // Step 1: Get all IDs of users the current user follows
+    const [followingRows] = await connectDB.query(
+      `SELECT followed_id
+       FROM followings
+       WHERE follower_id = ?`,
+      [user.id],
+    );
+
+    const extractIds = followingRows.map((f) => f.followed_id);
+
+    // If user follows no one, return empty list
+    if (extractIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Step 2: Get posts from those users
+    const [followingPosts] = await connectDB.query(
+      `SELECT 
+         p.*,
+         u.id AS user_id,
+         CONCAT(u.firstname, ' ', u.lastname) AS fullname,
+         (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+         (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
+         u.email,
+         u.profile_picture
+       FROM posts AS p
+       LEFT JOIN users AS u ON u.id = p.user_id
+       WHERE p.user_id IN (?)
+       ORDER BY p.created_at DESC`,
+      [extractIds],
+    );
+
+    // Step 3: Format response
+    const posts = followingPosts.map((row) => ({
+      post: {
+        id: row.id,
+        text: row.text,
+        image: row.image,
+        created_at: row.created_at,
+        comments: row.comments,
+        likes: row.likes,
+      },
+      user: {
+        id: row.user_id,
+        fullname: row.fullname,
+        email: row.email,
+        profile_picture: row.profile_picture,
+      },
+    }));
+
+    res.status(200).json(posts);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
