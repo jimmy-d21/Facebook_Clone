@@ -89,3 +89,42 @@ export const getUserProfile = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const getSuggestedUsers = async (req, res) => {
+  try {
+    const user = req.user; // Get the currently logged-in user from request
+
+    // Step 1: Query all the IDs of users that the current user is following
+    const [followedRows] = await connectDB.query(
+      `
+      SELECT followed_id
+      FROM followings
+      WHERE follower_id = ?`,
+      [user.id],
+    );
+
+    // Step 2: Extract those IDs into a plain array
+    const extractIds = followedRows.map((f) => f.followed_id);
+
+    // Step 3: Build an exclusion list (self + already followed users)
+    const excludedIds = [user.id, ...extractIds];
+
+    // Step 4: Query all users who are not in the exclusion list
+    // Suggested users = everyone except yourself and people you already follow
+    const [suggestedUsers] = await connectDB.query(
+      `
+      SELECT *
+      FROM users
+      WHERE id NOT IN (?)
+      ORDER BY created_at DESC`,
+      [excludedIds],
+    );
+
+    // Step 5: Return the suggested users list as JSON
+    res.status(200).json(suggestedUsers);
+  } catch (error) {
+    // Error handling: log the error and return a server error response
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
