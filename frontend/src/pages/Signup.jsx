@@ -26,6 +26,8 @@ const Signup = () => {
       setLastname("");
       setPassword("");
       setConfirmPassword("");
+
+      navigate("/");
     }
   };
 
@@ -38,6 +40,7 @@ const Signup = () => {
           <div className="w-full flex flex-col gap-3">
             <input
               onChange={(e) => setEmail(e.target.value)}
+              z
               value={email}
               type="email"
               placeholder="Email"

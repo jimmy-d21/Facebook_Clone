@@ -39,8 +39,30 @@ const AuthContextProvider = ({ children }) => {
     }
   };
 
+  const fetchLogin = async (email, password) => {
+    try {
+      const { data } = await axios.post(`/api/auth/login`, {
+        email,
+        password,
+      });
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      toast.success(data.message);
+      return data;
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error || "Signup failed. Please try again.",
+      );
+    }
+  };
+
   const values = {
     fetchSignUp,
+    fetchLogin,
     authUser,
   };
 
