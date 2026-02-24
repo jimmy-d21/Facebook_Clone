@@ -16,6 +16,9 @@ const ENV = {
     cloud_api_key: process.env.CLOUD_API_KEY,
     cloud_secret_key: process.env.CLOUD_SECRET_KEY,
   },
+  client: {
+    url: process.env.CLIENT_URL,
+  },
 };
 
 export default ENV;

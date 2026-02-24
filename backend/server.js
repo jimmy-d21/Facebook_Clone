@@ -1,6 +1,7 @@
 // Import required modules
 import express from "express"; // Web framework for building APIs
 import cookieParser from "cookie-parser"; // Middleware to parse cookies
+import cors from "cors";
 
 // Import environment variables utility
 import ENV from "./utils/ENV.js";
@@ -18,6 +19,12 @@ const app = express();
 // Middleware
 app.use(express.json({ limit: "5mb" })); // Parse JSON requests with a size limit
 app.use(cookieParser()); // Enable cookie parsing
+app.use(
+  cors({
+    origin: ENV.client.url,
+    credentials: true,
+  }),
+);
 
 // Root route (basic health check)
 app.get("/", (req, res) => {
