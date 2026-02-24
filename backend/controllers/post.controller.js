@@ -75,7 +75,7 @@ export const getAllPosts = async (req, res) => {
         p.text,
         p.image,
         p.created_at,
-        (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+        (SELECT GROUP_CONCAT(l.user_id) FROM likes l WHERE l.post_id = p.id) AS likes,
         (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments
       FROM users AS u 
       INNER JOIN posts AS p ON u.id = p.user_id
@@ -91,7 +91,8 @@ export const getAllPosts = async (req, res) => {
         image: row.image,
         created_at: row.created_at,
         comments: row.comments,
-        likes: row.likes,
+        // Convert comma-separated string into array of numbers
+        likes: row.likes ? row.likes.split(",") : [],
       },
       user: {
         id: row.user_id,
@@ -222,7 +223,7 @@ export const getAllFollowingPosts = async (req, res) => {
          p.*,
          u.id AS user_id,
          CONCAT(u.firstname, ' ', u.lastname) AS fullname,
-         (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+         (SELECT GROUP_CONCAT(l.user_id) FROM likes l WHERE l.post_id = p.id) AS likes,
          (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
          u.email,
          u.profile_picture
@@ -233,15 +234,15 @@ export const getAllFollowingPosts = async (req, res) => {
       [extractIds],
     );
 
-    // Step 3: Format response
     const posts = followingPosts.map((row) => ({
       post: {
-        id: row.id,
+        id: row.post_id,
         text: row.text,
         image: row.image,
         created_at: row.created_at,
         comments: row.comments,
-        likes: row.likes,
+        // Convert comma-separated string into array of numbers
+        likes: row.likes ? row.likes.split(",") : [],
       },
       user: {
         id: row.user_id,
@@ -269,7 +270,7 @@ export const getAllUserPosts = async (req, res) => {
       CONCAT(u.firstname, ' ', u.lastname) AS fullname,
       u.email,
       u.profile_picture,
-      (SELECT COUNT(*) FROM likes AS l WHERE l.post_id = p.id) AS likes,
+      (SELECT GROUP_CONCAT(l.user_id) FROM likes l WHERE l.post_id = p.id) AS likes,
       (SELECT COUNT(*) FROM comments AS c WHERE c.post_id = p.id) AS comments
       FROM posts AS p
       INNER JOIN users AS u ON u.id = p.user_id
@@ -278,15 +279,15 @@ export const getAllUserPosts = async (req, res) => {
       [userId],
     );
 
-    // Step 3: Format response
-    const posts = userPosts.map((row) => ({
+    const posts = results.map((row) => ({
       post: {
-        id: row.id,
+        id: row.post_id,
         text: row.text,
         image: row.image,
         created_at: row.created_at,
         comments: row.comments,
-        likes: row.likes,
+        // Convert comma-separated string into array of numbers
+        likes: row.likes ? row.likes.split(",") : [],
       },
       user: {
         id: row.user_id,
@@ -331,7 +332,7 @@ export const getAllLikedPosts = async (req, res) => {
         CONCAT(u.firstname, ' ', u.lastname) AS fullname,
         u.email,
         u.profile_picture,
-        (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+        (SELECT GROUP_CONCAT(l.user_id) FROM likes l WHERE l.post_id = p.id) AS likes,
         (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments
       FROM posts AS p
       INNER JOIN users AS u ON u.id = p.user_id
@@ -340,15 +341,15 @@ export const getAllLikedPosts = async (req, res) => {
       [extractIds],
     );
 
-    // Step 4: Format response
     const likedPosts = posts.map((row) => ({
       post: {
-        id: row.id,
+        id: row.post_id,
         text: row.text,
         image: row.image,
         created_at: row.created_at,
         comments: row.comments,
-        likes: row.likes,
+        // Convert comma-separated string into array of numbers
+        likes: row.likes ? row.likes.split(",") : [],
       },
       user: {
         id: row.user_id,
