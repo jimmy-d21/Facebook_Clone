@@ -13,12 +13,7 @@ const AuthContextProvider = ({ children }) => {
       const { data } = await axios.get(`/api/auth/me`);
 
       setAuthUser(data);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.error ||
-          "Authentication failed. Please try again.",
-      );
-    }
+    } catch (error) {}
   };
 
   const fetchSignUp = async (
@@ -76,10 +71,23 @@ const AuthContextProvider = ({ children }) => {
     }
   };
 
+  const fetchLogout = async () => {
+    try {
+      const { data } = await axios.post(`/api/auth/logout`);
+      toast.success(data.message);
+      setAuthUser(null);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error || "Login failed. Please try again.",
+      );
+    }
+  };
+
   const values = {
     fetchSignUp,
     fetchLogin,
     fetchAuthUser,
+    fetchLogout,
     authUser,
   };
 
