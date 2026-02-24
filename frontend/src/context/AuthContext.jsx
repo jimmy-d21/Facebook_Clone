@@ -8,6 +8,19 @@ export const AuthContext = createContext();
 const AuthContextProvider = ({ children }) => {
   const [authUser, setAuthUser] = useState(null);
 
+  const fetchAuthUser = async () => {
+    try {
+      const { data } = await axios.get(`/api/auth/me`);
+
+      setAuthUser(data);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error ||
+          "Authentication failed. Please try again.",
+      );
+    }
+  };
+
   const fetchSignUp = async (
     email,
     firstname,
@@ -30,6 +43,7 @@ const AuthContextProvider = ({ children }) => {
       }
 
       toast.success(data.message || "Signup successful!");
+      await fetchAuthUser();
 
       return data;
     } catch (error) {
@@ -52,10 +66,12 @@ const AuthContextProvider = ({ children }) => {
       }
 
       toast.success(data.message);
+      await fetchAuthUser();
+
       return data;
     } catch (error) {
       toast.error(
-        error.response?.data?.error || "Signup failed. Please try again.",
+        error.response?.data?.error || "Login failed. Please try again.",
       );
     }
   };
@@ -63,6 +79,7 @@ const AuthContextProvider = ({ children }) => {
   const values = {
     fetchSignUp,
     fetchLogin,
+    fetchAuthUser,
     authUser,
   };
 
