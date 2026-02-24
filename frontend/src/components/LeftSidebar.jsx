@@ -89,7 +89,7 @@ const LeftSidebar = () => {
         </div>
         <div
           onClick={handleLogout}
-          className="w-8 h-8 md:w-10 md:h-10 p-2 rounded-full bg-transparent 
+          className="w-8 h-8 md:w-10 md:h-10 p-2.5 rounded-full bg-transparent 
                      cursor-pointer transition-colors duration-300 hover:bg-gray-600"
         >
           <RiLogoutBoxLine className="w-full h-full text-white" />

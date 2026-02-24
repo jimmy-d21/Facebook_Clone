@@ -6,7 +6,7 @@ const Home = () => {
     <div className="min-h-screen w-full bg-gray-800 flex justify-center">
       <div className="w-full max-w-7xl flex">
         {/* Left SideBar */}
-        <div className="flex-1 border-r border-gray-300">
+        <div className="flex-1 border-r border-gray-600">
           <LeftSidebar />
         </div>
         {/* Posts */}
